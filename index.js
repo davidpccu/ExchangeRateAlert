@@ -1,6 +1,12 @@
 const request = require('request');
+const express = require('express');
 require('dotenv').config();
 
+const app = express();
+var server = app.listen(process.env.PORT || 8080, function() {
+    var port = server.address().port;
+    console.log("App now running on port", port);
+});
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
 let lastNotificationTime = 0;
