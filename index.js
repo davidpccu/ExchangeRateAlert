@@ -12,6 +12,11 @@ const CHAT_ID = process.env.CHAT_ID;
 let lastNotificationTime = 0;
 let firstNotificationSent = false;
 
+app.get('/health', (req, res) => {
+    console.log('Health check at:', new Date().toISOString());
+    res.status(200).send('OK');
+});
+
 init();
 
 async function fetchPrice(url) {
