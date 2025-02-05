@@ -13,7 +13,7 @@ let lastNotificationTime = 0;
 let firstNotificationSent = false;
 
 app.get('/health', (req, res) => {
-    console.log('Health check at:', new Date().toISOString());
+    //console.log('Health check at:', new Date().toISOString());
     res.status(200).send('OK');
 });
 
