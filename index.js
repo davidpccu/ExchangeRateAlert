@@ -1,6 +1,7 @@
 const request = require('request');
 const express = require('express');
 const dotenv = require('dotenv').config();
+const { Server } = require('socket.io');
 const app = express();
 const server = app.listen(process.env.PORT || 8080, function() {
     let port = server.address().port;
@@ -11,12 +12,16 @@ const CHAT_ID = process.env.CHAT_ID;
 let lastNotificationTime = 0;
 let firstNotificationSent = false;
 
+const io = new Server(server);
+app.use(express.static('public'));
+
 app.get('/health', (req, res) => {
     //console.log('Health check at:', new Date().toISOString());
     res.status(200).send('OK');
 });
 
 init();
+log();
 
 async function fetchPrice(url) {
     return new Promise((resolve, reject) => {
@@ -89,6 +94,15 @@ async function init() {
         console.error(err);
 
     }
+}
+
+function log() {
+    const originalLog = console.log;
+    console.log = function (...args) {
+        const logMessage = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+        io.emit('log', logMessage);
+        originalLog.apply(console, args);
+    };
 }
 
 setInterval(init, 5000);
