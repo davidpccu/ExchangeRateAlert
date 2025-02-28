@@ -76,7 +76,7 @@ async function init() {
         console.log(`即期: ${capiPrice.toFixed(2)} Max匯率: ${maxPrice.toFixed(2)} 價差: ${spread.toFixed(4)}%`);
 
         const currentTime = Date.now();
-        if (spread >= 1 || spread <= -1) {
+        if (spread >= 1.5 || spread <= -1) {
             if (!firstNotificationSent) {
                 firstNotificationSent = true;
                 lastNotificationTime = currentTime;
