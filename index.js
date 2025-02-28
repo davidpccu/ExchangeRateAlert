@@ -73,18 +73,18 @@ async function init() {
         const [capiPrice, maxPrice] = await Promise.all([getCapiPrice(), getMaxPrice()]);
         const spread = ((maxPrice / capiPrice) - 1) * 100;
 
-        console.log(`台銀: ${capiPrice.toFixed(2)} Max匯率: ${maxPrice.toFixed(2)} 價差: ${spread.toFixed(4)}%`);
+        console.log(`即期: ${capiPrice.toFixed(2)} Max匯率: ${maxPrice.toFixed(2)} 價差: ${spread.toFixed(4)}%`);
 
         const currentTime = Date.now();
         if (spread >= 1 || spread <= -1) {
             if (!firstNotificationSent) {
                 firstNotificationSent = true;
                 lastNotificationTime = currentTime;
-                await sendTelegramNotification(`台銀: ${capiPrice.toFixed(2)} Max匯率: ${maxPrice.toFixed(2)} 價差: ${spread.toFixed(4)}%`);
+                await sendTelegramNotification(`即期: ${capiPrice.toFixed(2)} Max匯率: ${maxPrice.toFixed(2)} 價差: ${spread.toFixed(4)}%`);
             }
             else if ((currentTime - lastNotificationTime) >= 5 * 60 * 1000) {
                 lastNotificationTime = currentTime;
-                await sendTelegramNotification(`台銀: ${capiPrice.toFixed(2)} Max匯率: ${maxPrice.toFixed(2)} 價差: ${spread.toFixed(4)}%`);
+                await sendTelegramNotification(`即期: ${capiPrice.toFixed(2)} Max匯率: ${maxPrice.toFixed(2)} 價差: ${spread.toFixed(4)}%`);
             }
         } else {
             firstNotificationSent = false;
