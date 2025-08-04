@@ -88,13 +88,13 @@ async function init() {
         if (maxSpread > bitoproSpread) {
             notifyPrice = maxPrice;
             notifySpread = maxSpread;
-            notifySource = 'Max匯率';
+            notifySource = 'Max';
         } else {
             notifyPrice = bitoproPrice;
             notifySpread = bitoproSpread;
-            notifySource = 'Bitopro匯率';
+            notifySource = 'Bitopro';
         }
-        console.log(`即期: ${capiPrice.toFixed(3)} Max匯率: ${maxPrice.toFixed(3)} Bitopro匯率: ${bitoproPrice.toFixed(3)} 最大價差: ${notifySource} 價差: ${notifySpread.toFixed(3)}%`);
+        console.log(`即期: ${capiPrice.toFixed(3)} Max: ${maxPrice.toFixed(3)} Bitopro: ${bitoproPrice.toFixed(3)} 最優套利-${notifySource} 價差: ${notifySpread.toFixed(3)}%`);
         const currentTime = Date.now();
         if (notifySpread >= 1.5 || notifySpread <= -1) {
             if (!firstNotificationSent) {
