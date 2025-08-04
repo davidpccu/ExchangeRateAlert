@@ -94,17 +94,17 @@ async function init() {
             notifySpread = bitoproSpread;
             notifySource = 'Bitopro匯率';
         }
-        console.log(`即期: ${capiPrice.toFixed(2)} Max匯率: ${maxPrice.toFixed(2)} Bitopro匯率: ${bitoproPrice.toFixed(2)} 最大價差: ${notifySource} 價差: ${notifySpread.toFixed(4)}%`);
+        console.log(`即期: ${capiPrice.toFixed(3)} Max匯率: ${maxPrice.toFixed(3)} Bitopro匯率: ${bitoproPrice.toFixed(3)} 最大價差: ${notifySource} 價差: ${notifySpread.toFixed(3)}%`);
         const currentTime = Date.now();
         if (notifySpread >= 1.5 || notifySpread <= -1) {
             if (!firstNotificationSent) {
                 firstNotificationSent = true;
                 lastNotificationTime = currentTime;
-                await sendTelegramNotification(`即期: ${capiPrice.toFixed(2)} ${notifySource}: ${notifyPrice.toFixed(2)} 價差: ${notifySpread.toFixed(4)}%`);
+                await sendTelegramNotification(`即期: ${capiPrice.toFixed(3)} ${notifySource}: ${notifyPrice.toFixed(3)} 價差: ${notifySpread.toFixed(3)}%`);
             }
             else if ((currentTime - lastNotificationTime) >= 5 * 60 * 1000) {
                 lastNotificationTime = currentTime;
-                await sendTelegramNotification(`即期: ${capiPrice.toFixed(2)} ${notifySource}: ${notifyPrice.toFixed(2)} 價差: ${notifySpread.toFixed(4)}%`);
+                await sendTelegramNotification(`即期: ${capiPrice.toFixed(3)} ${notifySource}: ${notifyPrice.toFixed(3)} 價差: ${notifySpread.toFixed(3)}%`);
             }
         } else {
             firstNotificationSent = false;
