@@ -3,7 +3,7 @@ const express = require('express');
 const dotenv = require('dotenv').config();
 const { Server } = require('socket.io');
 const app = express();
-const server = app.listen(process.env.PORT || 8080, function() {
+const server = app.listen(process.env.PORT || 8080, function () {
     let port = server.address().port;
     console.log("App now running on port", port);
 });
@@ -25,7 +25,11 @@ log();
 
 async function fetchPrice(url) {
     return new Promise((resolve, reject) => {
-        request({ url, method: 'GET' }, (err, res, body) => {
+        request({
+            url, method: 'GET', headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+            }
+        }, (err, res, body) => {
             if (err) {
                 return reject(`Request failed: ${err.message}`);
             }
@@ -40,13 +44,18 @@ async function fetchPrice(url) {
 }
 
 async function getCapiPrice() {
-    const rows = await fetchPrice('https://tw.rter.info/capi.php');
-    return Number(rows.USDTWD.Exrate);
+    const rows = await fetchPrice('https://query1.finance.yahoo.com/v8/finance/chart/USDTWD=X');
+    return Number(rows.chart.result[0].meta.regularMarketPrice);
 }
 
 async function getMaxPrice() {
     const rows = await fetchPrice('https://max-api.maicoin.com/api/v3/wallet/m/index_prices');
     return Number(rows.usdttwd);
+}
+
+async function getBitoproPrice() {
+    const rows = await fetchPrice('https://api.bitopro.com/v3/tickers/USDT_TWD');
+    return Number(rows.data.lastPrice);
 }
 
 async function sendTelegramNotification(message) {
@@ -70,29 +79,38 @@ async function sendTelegramNotification(message) {
 
 async function init() {
     try {
-        const [capiPrice, maxPrice] = await Promise.all([getCapiPrice(), getMaxPrice()]);
-        const spread = ((maxPrice / capiPrice) - 1) * 100;
-
-        console.log(`即期: ${capiPrice.toFixed(2)} Max匯率: ${maxPrice.toFixed(2)} 價差: ${spread.toFixed(4)}%`);
-
+        const [capiPrice, maxPrice, bitoproPrice] = await Promise.all([
+            getCapiPrice(), getMaxPrice(), getBitoproPrice()
+        ]);
+        const maxSpread = ((maxPrice / capiPrice) - 1) * 100;
+        const bitoproSpread = ((bitoproPrice / capiPrice) - 1) * 100;
+        let notifyPrice, notifySpread, notifySource;
+        if (maxSpread > bitoproSpread) {
+            notifyPrice = maxPrice;
+            notifySpread = maxSpread;
+            notifySource = 'Max匯率';
+        } else {
+            notifyPrice = bitoproPrice;
+            notifySpread = bitoproSpread;
+            notifySource = 'Bitopro匯率';
+        }
+        console.log(`即期: ${capiPrice.toFixed(3)} Max匯率: ${maxPrice.toFixed(3)} Bitopro匯率: ${bitoproPrice.toFixed(3)} 最大價差: ${notifySource} 價差: ${notifySpread.toFixed(3)}%`);
         const currentTime = Date.now();
-        if (spread >= 1.5 || spread <= -1) {
+        if (notifySpread >= 1.5 || notifySpread <= -1) {
             if (!firstNotificationSent) {
                 firstNotificationSent = true;
                 lastNotificationTime = currentTime;
-                await sendTelegramNotification(`即期: ${capiPrice.toFixed(2)} Max匯率: ${maxPrice.toFixed(2)} 價差: ${spread.toFixed(4)}%`);
+                await sendTelegramNotification(`即期: ${capiPrice.toFixed(3)} ${notifySource}: ${notifyPrice.toFixed(3)} 價差: ${notifySpread.toFixed(3)}%`);
             }
             else if ((currentTime - lastNotificationTime) >= 5 * 60 * 1000) {
                 lastNotificationTime = currentTime;
-                await sendTelegramNotification(`即期: ${capiPrice.toFixed(2)} Max匯率: ${maxPrice.toFixed(2)} 價差: ${spread.toFixed(4)}%`);
+                await sendTelegramNotification(`即期: ${capiPrice.toFixed(3)} ${notifySource}: ${notifyPrice.toFixed(3)} 價差: ${notifySpread.toFixed(3)}%`);
             }
         } else {
             firstNotificationSent = false;
         }
-
     } catch (err) {
         console.error(err);
-
     }
 }
 
@@ -105,5 +123,5 @@ function log() {
     };
 }
 
-setInterval(init, 5000);
+setInterval(init, 10000);
 setInterval(() => request.get('https://ExchangeRateAlert.onrender.com/'), 300000);
