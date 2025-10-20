@@ -94,7 +94,7 @@ async function init() {
             notifySpread = bitoproSpread;
             notifySource = 'Bitopro';
         }
-        console.log(`即期: ${capiPrice.toFixed(3)} Max: ${maxPrice.toFixed(3)} Bitopro: ${bitoproPrice.toFixed(3)} 【最優${notifySource}】 價差: ${notifySpread.toFixed(3)}%`);
+        console.log(`即期: ${capiPrice.toFixed(3)} Max: ${maxPrice.toFixed(3)} Bitopro: ${bitoproPrice.toFixed(3)} 最大價差: ${notifySpread.toFixed(3)}% 【${notifySource}】`);
         const currentTime = Date.now();
         if (notifySpread >= 2 || notifySpread <= -1) {
             if (!firstNotificationSent) {
