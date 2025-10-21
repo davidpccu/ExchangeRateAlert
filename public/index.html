@@ -44,7 +44,7 @@
 
         socket.on('log', (message) => {
             displayLog(message);
-            document.title = message.split('價差:')[1];
+            document.title = message.split(':')[4];
         });
     </script>
 </body>
