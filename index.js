@@ -24,6 +24,8 @@ init();
 log();
 
 async function fetchPrice(url) {
+    const host = new URL(url).hostname;
+    
     return new Promise((resolve, reject) => {
         request({
             url, method: 'GET', headers: {
