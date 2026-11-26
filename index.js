@@ -33,6 +33,21 @@ async function fetchPrice(url) {
             if (err) {
                 return reject(`Request failed: ${err.message}`);
             }
+
+            const status = res.statusCode;
+            const finalHost = res.request?.uri?.hostname || host;
+            const contentType = res.headers['content-type'] || '';
+            const mimeType = contentType.split(';', 1)[0].trim().toLowerCase();
+            const context = `[fetchPrice] ${host} -> ${finalHost} | HTTP ${status} | Content-Type: ${contentType || '(missing)'}`;
+
+            if (status < 200 || status >= 300) {
+                return reject(new Error(`${context} | Upstream HTTP error`));
+            }
+
+            if (mimeType !== 'application/json' && !mimeType.endsWith('+json')) {
+                return reject(new Error(`${context} | Expected JSON`));
+            }
+            
             try {
                 const rows = JSON.parse(body);
                 resolve(rows);
