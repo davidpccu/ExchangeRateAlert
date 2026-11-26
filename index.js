@@ -97,12 +97,17 @@ async function sendTelegramNotification(message) {
 async function init() {
     try {
         const [capiPrice, maxPrice, bitoproPrice] = await Promise.all([
-            getCapiPrice(), getMaxPrice(), getBitoproPrice()
+            getCapiPrice(), getMaxPrice(),
+            getBitoproPrice().catch(err => {
+                console.warn('[BitoPro]', err instanceof Error ? err.message : String(err));
+                return null;
+            })
         ]);
+        const hasBitoproPrice = bitoproPrice !== null;
         const maxSpread = ((maxPrice / capiPrice) - 1) * 100;
-        const bitoproSpread = ((bitoproPrice / capiPrice) - 1) * 100;
+        const bitoproSpread = hasBitoproPrice ? ((bitoproPrice / capiPrice) - 1) * 100 : null;
         let notifyPrice, notifySpread, notifySource;
-        if (maxSpread > bitoproSpread) {
+        if (bitoproSpread === null || maxSpread > bitoproSpread) {
             notifyPrice = maxPrice;
             notifySpread = maxSpread;
             notifySource = 'Max';
@@ -111,9 +116,14 @@ async function init() {
             notifySpread = bitoproSpread;
             notifySource = 'Bitopro';
         }
-        console.log(`即期: ${capiPrice.toFixed(3)} Max: ${maxPrice.toFixed(3)} Bitopro: ${bitoproPrice.toFixed(3)} 最大價差【${notifySource}】: ${notifySpread.toFixed(3)}%`);
+
+        // 缺 BitoPro 時顯示 N/A，並將「最大價差」改為「可用價差」
+        const bitoproPriceText = hasBitoproPrice ? bitoproPrice.toFixed(3) : 'N/A';
+        const spreadLabel = hasBitoproPrice ? '最大價差' : '可用價差';
+        console.log(`即期: ${capiPrice.toFixed(3)} Max: ${maxPrice.toFixed(3)} Bitopro: ${bitoproPriceText} ${spreadLabel}【${notifySource}】: ${notifySpread.toFixed(3)}%`)
+        
         const currentTime = Date.now();
-        if (notifySpread >= 2 || notifySpread <= -1) {
+         if (notifySpread >= 2 || (hasBitoproPrice && notifySpread <= -1)) {  // 負價差需兩家報價
             if (!firstNotificationSent) {
                 firstNotificationSent = true;
                 lastNotificationTime = currentTime;
